@@ -1,8 +1,9 @@
-import "hardhat-deploy";
-import "@nomiclabs/hardhat-ethers";
 import "@typechain/hardhat";
+import "@nomiclabs/hardhat-waffle";
+import "@nomiclabs/hardhat-ethers";
+import "hardhat-deploy";
+
 import { HardhatUserConfig } from "hardhat/types";
-// require("@nomiclabs/hardhat-waffle");
 
 // // This is a sample Hardhat task. To learn how to create your own go to
 // // https://hardhat.org/guides/create-task.html

@@ -30,3 +30,4 @@ const deploySubscriptionToken: DeployFunction = async (hre: HardhatRuntimeEnviro
 };
 
 export default deploySubscriptionToken;
+deploySubscriptionToken.tags = ["all", "token"]
