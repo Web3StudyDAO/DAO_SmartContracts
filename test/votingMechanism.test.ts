@@ -1,6 +1,8 @@
 import { Web3DAOToken, GovernorContract, Web3DAOGovernanceToken, TimeLock } from "../typechain-types";
 import { assert, expect } from "chai";
 import { deployments, ethers, getNamedAccounts } from "hardhat";
+import { VOTING_DELAY } from "../helper-hardhat-config"
+import { moveBlocks } from "../utils/move-blocks"
 
 
 describe.only("Governor Flow", async () => {
@@ -46,6 +48,9 @@ describe.only("Governor Flow", async () => {
         const proposalId = proposeReceipt.events![0].args!.proposalId
         let proposalState = await governor.state(proposalId)
         console.log(`Current Proposal State: ${proposalState}`)
+
+        await moveBlocks(VOTING_DELAY + 1)
+
     });
 
 
