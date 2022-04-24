@@ -1,7 +1,7 @@
 import { Web3DAOToken, GovernorContract, Web3DAOGovernanceToken, TimeLock } from "../typechain-types";
 import { assert, expect } from "chai";
 import { deployments, ethers, getNamedAccounts } from "hardhat";
-import { VOTING_DELAY } from "../helper-hardhat-config"
+import { VOTING_DELAY, VOTING_PERIOD } from "../helper-hardhat-config"
 import { moveBlocks } from "../utils/move-blocks"
 
 
@@ -14,7 +14,7 @@ describe.only("Governor Flow", async () => {
 
     let deployer: string
     let receiver: string
-
+    
     beforeEach(async () => {
         await deployments.fixture(["all"])
         governanceToken = await ethers.getContract("Web3DAOGovernanceToken")
@@ -34,7 +34,7 @@ describe.only("Governor Flow", async () => {
 
     //TODO: Verify tokens were transferd
     it("proposes, votes, waits, queues, and then executes", async () => {
-        const PROPOSAL_DESCRIPTION = "Great Talk! Well deserved!"
+        const PROPOSAL_DESCRIPTION = "Reward John Doe with 1 Token for his talk about Web3"
 
         //propose
         const encodedFunctionCall = token.interface.encodeFunctionData("transfer", [receiver, ethers.utils.parseEther("1")])
@@ -51,8 +51,15 @@ describe.only("Governor Flow", async () => {
 
         await moveBlocks(VOTING_DELAY + 1)
 
+        //vote
+        // 1 = for (spanish: a favor)
+        const voteTx = await governor.castVoteWithReason(proposalId, 1, "Great talk!")
+        await voteTx.wait(1)
+        proposalState = await governor.state(proposalId)
+        assert.equal(proposalState.toString(), "1")
+        console.log(`Current Proposal State: ${proposalState}`)
+
+        await moveBlocks(VOTING_PERIOD + 1)
+
     });
-
-
-
 });
