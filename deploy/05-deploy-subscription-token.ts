@@ -1,7 +1,6 @@
 import {HardhatRuntimeEnvironment} from 'hardhat/types';
 import {DeployFunction} from 'hardhat-deploy/types';
 import { ethers } from 'hardhat';
-import { time } from 'console';
 
 const deploySubscriptionToken: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
     const { getNamedAccounts, deployments} = hre;

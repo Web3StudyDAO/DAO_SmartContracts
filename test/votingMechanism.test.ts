@@ -1,11 +1,11 @@
 import { Web3DAOToken, GovernorContract, Web3DAOGovernanceToken, TimeLock } from "../typechain-types";
 import { assert, expect } from "chai";
 import { deployments, ethers, getNamedAccounts } from "hardhat";
-import { VOTING_DELAY, VOTING_PERIOD } from "../helper-hardhat-config"
+import { MIN_DELAY, VOTING_DELAY, VOTING_PERIOD } from "../helper-hardhat-config"
 import { moveBlocks } from "../utils/move-blocks"
+import { moveTime } from "../utils/move-time"
 
-
-describe.only("Governor Flow", async () => {
+describe("Governor Flow", async () => {
     // let governor: GovernorContract
     let governor: GovernorContract
     let governanceToken: Web3DAOGovernanceToken
@@ -14,7 +14,7 @@ describe.only("Governor Flow", async () => {
 
     let deployer: string
     let receiver: string
-    
+
     beforeEach(async () => {
         await deployments.fixture(["all"])
         governanceToken = await ethers.getContract("Web3DAOGovernanceToken")
@@ -22,7 +22,7 @@ describe.only("Governor Flow", async () => {
         governor = await ethers.getContract("GovernorContract")
         token = await ethers.getContract("Web3DAOToken");
 
-        ({deployer, receiver} = await getNamedAccounts())
+        ({ deployer, receiver } = await getNamedAccounts())
 
     });
 
@@ -32,7 +32,6 @@ describe.only("Governor Flow", async () => {
         ).to.be.revertedWith("Ownable: caller is not the owner")
     });
 
-    //TODO: Verify tokens were transferd
     it("proposes, votes, waits, queues, and then executes", async () => {
         const PROPOSAL_DESCRIPTION = "Reward John Doe with 1 Token for his talk about Web3"
 
@@ -61,5 +60,35 @@ describe.only("Governor Flow", async () => {
 
         await moveBlocks(VOTING_PERIOD + 1)
 
+        // queue & execute
+        const descriptionHash = ethers.utils.id(PROPOSAL_DESCRIPTION)
+        const queueTx = await governor.queue(
+            [token.address],
+            [0],
+            [encodedFunctionCall],
+            descriptionHash
+        )
+        await queueTx.wait(1)
+        await moveTime(MIN_DELAY + 1)
+        await moveBlocks(1)
+
+        proposalState = await governor.state(proposalId)
+        console.log(`Current Proposal State: ${proposalState}`)
+
+        console.log("Executing...")
+        console.log()
+        const exTx = await governor.execute(
+            [token.address],
+            [0],
+            [encodedFunctionCall],
+            descriptionHash
+        )
+        await exTx.wait(1)
+        expect(
+            (await token.balanceOf(receiver))
+        ).to.be.equal( ethers.utils.parseEther("1"))
+        expect(
+            (await token.balanceOf(timeLock.address))
+        ).to.be.equal( ethers.utils.parseEther("999999"))
     });
 });
