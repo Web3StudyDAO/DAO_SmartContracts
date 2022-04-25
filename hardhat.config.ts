@@ -3,7 +3,7 @@ import "@nomiclabs/hardhat-waffle";
 import "@nomiclabs/hardhat-ethers";
 import "hardhat-deploy";
 import { HardhatUserConfig } from "hardhat/types";
-import { PRIVATE_KEY } from "./env";
+import { PRIVATE_KEY, APIKEY } from "./env";
 import { ethers } from "hardhat";
 
 const config: HardhatUserConfig = {
@@ -19,8 +19,14 @@ const config: HardhatUserConfig = {
     matic: {
       url: "https://rpc-mumbai.maticvigil.com",
       accounts: [PRIVATE_KEY],
-      gasPrice: 8e9,
+      gasPrice: 8e10,
       // gas: 4e17
+      verify: {
+        etherscan: {
+          apiUrl: 'https://api-testnet.polygonscan.com/',
+          apiKey: APIKEY
+        }
+      }
     }
   },
   namedAccounts: {
